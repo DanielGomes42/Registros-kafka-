@@ -32,7 +32,7 @@ Como executar
 
 ## Pré-requisito
 
-git clone 
+git clone https://github.com/DanielGomes42/Registros-kafka-.git
 
 baixe o arquivo CSV
 
@@ -41,6 +41,11 @@ https://drive.google.com/file/d/1FrkK4yxaEBDxVhBJJrl6XODlCspDKMp8/view?usp=drive
 Tenha o Docker Desktop instalado e em execução.
 Subir o projeto
 
+ entre na pasta Registros-kafka 
+
+ Acesse o terminal cmd 
+
+ e digite 
 
 docker compose up --build
 
