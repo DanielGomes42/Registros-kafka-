@@ -1,0 +1,74 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: geosapiens
+      POSTGRES_USER: geosapiens
+      POSTGRES_PASSWORD: geosapiens
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U geosapiens -d geosapiens"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+
+  api:
+    build: ./backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/geosapiens
+      SPRING_DATASOURCE_USERNAME: geosapiens
+      SPRING_DATASOURCE_PASSWORD: geosapiens
+      KAFKA_BOOTSTRAP_SERVERS: kafka:19092
+      DB_STORAGE_LIMIT_GB: ${DB_STORAGE_LIMIT_GB:-20}
+      DB_ALERT_PERCENT: ${DB_ALERT_PERCENT:-80}
+      AVG_ROW_BYTES_ESTIMATE: ${AVG_ROW_BYTES_ESTIMATE:-180}
+      DATADOG_ENABLED: ${DATADOG_ENABLED:-false}
+      DD_API_KEY: ${DD_API_KEY:-}
+    depends_on:
+      db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8081:8080"
+
+  kafka:
+    image: apache/kafka:3.9.1
+    hostname: kafka
+    extra_hosts:
+      - "kafka:127.0.0.1"
+    environment:
+      KAFKA_NODE_ID: 1
+      CLUSTER_ID: 4L6g3nShT-eMCtK--X86sw
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENERS: CONTROLLER://:29093,PLAINTEXT_HOST://:9092,PLAINTEXT://:19092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT_HOST://localhost:9092,PLAINTEXT://kafka:19092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_MIN_ISR: 1
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+  web:
+    build: ./frontend
+    depends_on:
+      - api
+    ports:
+      - "5174:80"
+
+volumes:
+  postgres_data:

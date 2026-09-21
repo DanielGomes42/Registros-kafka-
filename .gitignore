@@ -1,0 +1,10 @@
+frontend/node_modules/
+frontend/dist/
+frontend/.npm-cache/
+*.csv
+
+backend/target/
+frontend/node_modules/
+frontend/dist/
+*.csv
+.env

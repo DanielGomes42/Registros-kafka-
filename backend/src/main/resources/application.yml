@@ -1,0 +1,41 @@
+spring:
+  servlet:
+    multipart:
+      max-file-size: 2GB
+      max-request-size: 2GB
+      file-size-threshold: 0
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/geosapiens}
+    username: ${SPRING_DATASOURCE_USERNAME:geosapiens}
+    password: ${SPRING_DATASOURCE_PASSWORD:geosapiens}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: geosapiens-importer
+      auto-offset-reset: earliest
+      max-poll-records: ${IMPORT_BATCH_SIZE:1000}
+      properties:
+        spring.json.trusted.packages: com.geosapiens
+    listener:
+      type: batch
+  sql:
+    init:
+      mode: never
+server:
+  tomcat:
+    max-swallow-size: -1
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  datadog:
+    metrics:
+      export:
+        enabled: ${DATADOG_ENABLED:false}
+        api-key: ${DD_API_KEY:}
+        step: 30s
+geosapiens:
+  storage-limit-gb: ${DB_STORAGE_LIMIT_GB:20}
+  alert-percent: ${DB_ALERT_PERCENT:80}
+  avg-row-bytes-estimate: ${AVG_ROW_BYTES_ESTIMATE:180}
