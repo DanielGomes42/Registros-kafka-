@@ -9,8 +9,8 @@ Aplicação para importar e analisar arquivos CSV com milhões de transações, 
 - PostgreSQL
 - Apache Kafka
 - Docker Compose
-- Spring Boot Actuator e Micrometer
-- Datadog opcional
+- Spring Boot Actuator 
+
 
 ## Arquitetura
 
@@ -18,6 +18,7 @@ Aplicação para importar e analisar arquivos CSV com milhões de transações, 
 CSV → API Spring Boot → Kafka → Consumer em lote → PostgreSQL
                                       ↓
                               Dashboard React
+
 1. A API recebe o CSV e cria um job de importação.
 2. O arquivo é lido em streaming, uma linha por vez.
 3. Cada registro válido é publicado no tópico Kafka transactions-import.
