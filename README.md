@@ -14,7 +14,7 @@ Aplicação para importar e analisar arquivos CSV com milhões de transações, 
 
 ## Arquitetura
 
-```text
+
 CSV → API Spring Boot → Kafka → Consumer em lote → PostgreSQL
                                       ↓
                               Dashboard React
@@ -25,11 +25,14 @@ CSV → API Spring Boot → Kafka → Consumer em lote → PostgreSQL
 4. O consumer recebe mensagens em lote e persiste no PostgreSQL.
 5. O React acompanha o progresso por polling e consulta dados paginados ou agregados.
 Como executar
+
 Pré-requisito
 Tenha o Docker Desktop instalado e em execução.
 Subir o projeto
 docker compose up --build
 Abra http://localhost:5174.
+
+
 O Docker Compose sobe quatro serviços:
 - web: frontend React servido pelo Nginx;
 - api: backend Java Spring Boot;
@@ -93,9 +96,4 @@ Testes
 O projeto possui testes para cálculo de capacidade e parsing de CSV.
 Antes de executar uma carga grande, valide o fluxo com um CSV pequeno.
 
-Depois execute:
 
-```powershell
-git add README.md
-git commit -m "docs: improve project documentation"
-git push
