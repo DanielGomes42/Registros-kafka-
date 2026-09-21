@@ -27,9 +27,18 @@ CSV → API Spring Boot → Kafka → Consumer em lote → PostgreSQL
 Como executar
 
 Pré-requisito
+
+baixe o arquivo CSV
+
+https://drive.google.com/file/d/1FrkK4yxaEBDxVhBJJrl6XODlCspDKMp8/view?usp=drive_link
+
 Tenha o Docker Desktop instalado e em execução.
 Subir o projeto
+
+
 docker compose up --build
+
+
 Abra http://localhost:5174.
 
 
