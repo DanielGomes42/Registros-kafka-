@@ -26,7 +26,13 @@ CSV → API Spring Boot → Kafka → Consumer em lote → PostgreSQL
 5. O React acompanha o progresso por polling e consulta dados paginados ou agregados.
 Como executar
 
-Pré-requisito
+
+
+
+
+## Pré-requisito
+
+git clone 
 
 baixe o arquivo CSV
 
