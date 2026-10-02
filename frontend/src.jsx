@@ -102,10 +102,16 @@ function App() {
   }
   const currentTotal = allAgg.reduce((n, x) => n + Number(x.total), 0),
     total = allAgg.reduce((n, x) => n + Number(x.count), 0),
-    categories = ["food", "transport", "utilities", "health", "entertainment"],
     months = Array.from({ length: 12 }, (_, i) =>
       new Date(2000, i, 1).toLocaleString("pt-BR", { month: "long" }),
-    );
+    ),
+    monthlyTotals = months.map((name, index) => ({
+      name,
+      total: agg
+        .filter((item) => Number(item.month_number) === index + 1)
+        .reduce((sum, item) => sum + Number(item.total), 0),
+    })),
+    chartMax = Math.max(1, ...monthlyTotals.map((item) => item.total));
   return (
     <main>
       <header>
@@ -189,29 +195,35 @@ function App() {
         ) : !year || !agg.length ? (
           <p>Nenhum dado disponível para este ano.</p>
         ) : (
-          <div className="months">
-            {months.map((name, index) => (
-              <div className="month" key={name}>
-                <h3>{name}</h3>
-                {categories.map((category) => {
-                  const item = agg.find(
-                    (x) =>
-                      Number(x.month_number) === index + 1 &&
-                      x.category === category,
-                  );
-                  return (
-                    <div className="aggregate-row" key={category}>
-                      <span>{category}</span>
-                      <small>
-                        {money.format(item?.total || 0)} (
-                        {Number(item?.count || 0).toLocaleString()} registros)
-                      </small>
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
+          <>
+            <div className="chart" aria-label="Valor total por mês">
+              {monthlyTotals.map((item) => (
+                <div className="chart-row" key={item.name}>
+                  <span>{item.name.slice(0, 3)}</span>
+                  <div className="chart-track">
+                    <div className="chart-bar" style={{ width: `${(item.total / chartMax) * 100}%` }} />
+                  </div>
+                  <small>{money.format(item.total)}</small>
+                </div>
+              ))}
+            </div>
+            <div className="months">
+              {months.map((name, index) => {
+                const items = agg.filter((item) => Number(item.month_number) === index + 1);
+                return (
+                  <div className="month" key={name}>
+                    <h3>{name}</h3>
+                    {items.length ? items.map((item) => (
+                      <div className="aggregate-row" key={item.category}>
+                        <span>{item.category}</span>
+                        <small>{money.format(item.total)} ({Number(item.count).toLocaleString()} registros)</small>
+                      </div>
+                    )) : <small>Sem registros.</small>}
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </section>
       <section className="panel">

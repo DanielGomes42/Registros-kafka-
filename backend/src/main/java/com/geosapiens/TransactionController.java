@@ -8,8 +8,11 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -104,14 +107,15 @@ public class TransactionController {
         String[] key = new String(Base64.getUrlDecoder().decode(cursor), StandardCharsets.UTF_8).split("\\|", 2);
         if (key.length != 2)
           throw new IllegalArgumentException();
+        OffsetDateTime cursorDate = Instant.parse(key[0]).atOffset(ZoneOffset.UTC);
         items = start == null ? jdbc.queryForList(
             "SELECT id, occurred_at, category, amount, source FROM transactions WHERE (occurred_at, id) < (?, ?) ORDER BY occurred_at DESC, id DESC LIMIT ?",
-            OffsetDateTime.parse(key[0]), Long.parseLong(key[1]), limit + 1)
+            cursorDate, Long.parseLong(key[1]), limit + 1)
             : jdbc.queryForList(
                 "SELECT id, occurred_at, category, amount, source FROM transactions WHERE occurred_at >= ? AND occurred_at < ? AND (occurred_at, id) < (?, ?) ORDER BY occurred_at DESC, id DESC LIMIT ?",
-                start, end, OffsetDateTime.parse(key[0]), Long.parseLong(key[1]), limit + 1);
+                start, end, cursorDate, Long.parseLong(key[1]), limit + 1);
       }
-    } catch (IllegalArgumentException e) {
+    } catch (IllegalArgumentException | java.time.DateTimeException e) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cursor inválido.");
     }
     boolean more = items.size() > limit;
@@ -120,8 +124,10 @@ public class TransactionController {
     String next = "";
     if (more) {
       Map<String, Object> last = items.getLast();
+      Object date = last.get("occurred_at");
+      Instant instant = date instanceof OffsetDateTime value ? value.toInstant() : ((Timestamp) date).toInstant();
       next = Base64.getUrlEncoder().withoutPadding()
-          .encodeToString((last.get("occurred_at") + "|" + last.get("id")).getBytes(StandardCharsets.UTF_8));
+          .encodeToString((instant + "|" + last.get("id")).getBytes(StandardCharsets.UTF_8));
     }
     return Map.of("items", items, "nextCursor", next);
   }
